@@ -1,0 +1,73 @@
+---
+#tasks file for redis
+- name: Installing redis 
+  apt:
+    name: redis-server
+    state: present
+    update_cache: yes
+
+- name: Installing multi-instance Redis
+  block: 
+    - name: Adding redis.conf
+      template: 
+        owner: redis
+        group: redis
+        src:  redis.conf.j2 
+        mode: '0644'
+        dest: "/etc/redis/redis{{port}}.conf"
+      notify: reload
+    
+    - name: "Making var/lib/redis"
+      file: 
+        owner: redis 
+        group: redis 
+        state: directory
+        path: "/var/lib/redis{{port}}"
+        mode: '0750'
+    
+    - name: "Making appendonly" 
+      file: 
+        owner: redis 
+        group: redis 
+        state: touch 
+        path: "/var/lib/redis{{port}}/appendonly-redis{{port}}"
+        mode: '0750'
+    
+    - name: Adding redis.service
+      template: 
+        owner: root
+        group: root
+        src:  redis-server.service.j2 
+        mode: '0644'
+        dest: "/lib/systemd/system/redis-server{{port}}.service"
+      notify: reload
+
+    - name: Get Redis host IP:port
+      set_fact:
+        redis_hosts: "{{ redis_hosts | default([]) + [ hostvars[item].ansible_default_ipv4.address ~ ':' ~ hostvars[item]['port'] ] }}"
+      loop: "{{ groups['redis'] }}"
+
+#   - name: Display IP and Port variable
+#     debug:
+#       var: redis_hosts 
+
+    - name: Set Redis cluster command
+      set_fact:
+        redis_cluster_command: "redis-cli --cluster create {{ redis_hosts | join(' ') }} --cluster-replicas {{cluster_replicas}}"
+      loop: "{{redis_hosts}}"
+
+    - name: Display IP and Port variable
+      debug:
+        var: redis_cluster_command 
+
+    - name: bemula
+      debug:
+        var: ansible_hostname
+
+    - name: Execute Redis cluster command
+      command: "{{ redis_cluster_command }}"
+      register: redis_cluster_output
+      when: inventory_hostname=="redis1"
+
+
+

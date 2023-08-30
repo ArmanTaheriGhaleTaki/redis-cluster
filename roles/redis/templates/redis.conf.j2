@@ -1,0 +1,10 @@
+port {{port}}
+cluster-enabled yes
+cluster-config-file nodes{{port}}.conf
+cluster-node-timeout 5000
+appendonly yes
+appendfilename {{redis_appendfilename}} 
+protected-mode no 
+pidfile /var/run/redis{{port}}/redis-server{{port}}.pid
+logfile /var/log/redis/redis-server{{port}}.log
+dir /var/lib/redis{{port}}

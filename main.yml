@@ -1,0 +1,8 @@
+---
+
+- name: Installing redis
+  hosts: redis
+  become: yes
+  roles: 
+    - role: redis
+...

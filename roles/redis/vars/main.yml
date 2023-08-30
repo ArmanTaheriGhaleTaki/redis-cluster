@@ -1,0 +1,7 @@
+---
+# vars file for redis
+redis_instances: '3'
+#multi_instances: 1
+multi_instances: 0
+port: 7000
+cluster_replicas: 0

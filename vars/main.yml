@@ -1,0 +1,3 @@
+#
+multi_instance_Redis: "1"
+test: yes 

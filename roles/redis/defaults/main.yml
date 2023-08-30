@@ -1,0 +1,4 @@
+---
+# defaults file for redis
+redis_appendfilename: appendonly_redis{{port}}.aof 
+test: yes
