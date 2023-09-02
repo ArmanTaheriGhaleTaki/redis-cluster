@@ -1,6 +1,6 @@
 ---
 # handlers file for redis
-- name: reload  
+- name: reload redis-server.service 
   systemd:
     name: redis-server{{port}}.service
     enabled: true

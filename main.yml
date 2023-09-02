@@ -1,6 +1,6 @@
 ---
 
-- name: Installing redis
+- name: Installing Redises and clustering them
   hosts: redis
   become: yes
   roles: 

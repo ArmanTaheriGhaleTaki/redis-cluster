@@ -1,58 +1,60 @@
 ---
 #tasks file for redis
-- name: Installing redis 
+- name: Installing Redis 
   apt:
     name: redis-server
     state: present
     update_cache: yes
 
-- name: Installing multi-instance Redis
+- name: Adding Redis.conf
+  template: 
+    owner: redis
+    group: redis
+    src:  redis.conf.j2 
+    mode: '0644'
+    dest: "/etc/redis/redis{{port}}.conf"
+
+- name: "Making /var/lib/redis"
+  file: 
+    owner: redis 
+    group: redis 
+    state: directory
+    path: "/var/lib/redis{{port}}"
+    mode: '0750'
+
+- name: Making appendonly 
+  file: 
+    owner: redis 
+    group: redis 
+    state: touch 
+    path: "/var/lib/redis{{port}}/appendonly-redis{{port}}"
+    mode: '0750'
+
+- name: Adding redis.service
+  template: 
+    owner: root
+    group: root
+    src:  redis-server.service.j2 
+    mode: '0644'
+    dest: "/lib/systemd/system/redis-server{{port}}.service"
+  notify: reload redis-server.service
+  
+- name: Flush handlers
+  meta: flush_handlers
+ 
+- name: Making cluster command
   block: 
-    - name: Adding redis.conf
-      template: 
-        owner: redis
-        group: redis
-        src:  redis.conf.j2 
-        mode: '0644'
-        dest: "/etc/redis/redis{{port}}.conf"
-      notify: reload
-    
-    - name: "Making /var/lib/redis"
-      file: 
-        owner: redis 
-        group: redis 
-        state: directory
-        path: "/var/lib/redis{{port}}"
-        mode: '0750'
-    
-    - name: "Making appendonly" 
-      file: 
-        owner: redis 
-        group: redis 
-        state: touch 
-        path: "/var/lib/redis{{port}}/appendonly-redis{{port}}"
-        mode: '0750'
-    
-    - name: Adding redis.service
-      template: 
-        owner: root
-        group: root
-        src:  redis-server.service.j2 
-        mode: '0644'
-        dest: "/lib/systemd/system/redis-server{{port}}.service"
-      notify: reload
+   - name: Get Redis host IP:port
+     set_fact:
+       redis_hosts: "{{ redis_hosts | default([]) + [ hostvars[item].ansible_default_ipv4.address ~ ':' ~ hostvars[item]['port'] ] }}"
+     loop: "{{ groups['redis'] }}"
+   
+   - name: Set Redis cluster command
+     set_fact:
+       redis_cluster_command: "redis-cli --cluster create {{ redis_hosts | join(' ') }} --cluster-yes --cluster-replicas {{cluster_replicas}} "
+     loop: "{{redis_hosts}}"
 
-    - name: Get Redis host IP:port
-      set_fact:
-        redis_hosts: "{{ redis_hosts | default([]) + [ hostvars[item].ansible_default_ipv4.address ~ ':' ~ hostvars[item]['port'] ] }}"
-      loop: "{{ groups['redis'] }}"
+- name: Execute Redis cluster command
+  command: "{{ redis_cluster_command }}"
+  when: inventory_hostname=="redis1"
 
-    - name: Set Redis cluster command
-      set_fact:
-        redis_cluster_command: "redis-cli --cluster create {{ redis_hosts | join(' ') }} --cluster-yes --cluster-replicas {{cluster_replicas}} "
-      loop: "{{redis_hosts}}"
-
-    - name: Execute Redis cluster command
-      command: "{{ redis_cluster_command }}"
-      register: redis_cluster_output
-      when: inventory_hostname=="redis1"
