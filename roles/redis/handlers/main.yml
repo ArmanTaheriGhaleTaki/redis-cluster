@@ -1,11 +1,8 @@
 ---
 # handlers file for redis
 - name: reload  
-  vars:
-    port: "{{'8000'|int+ item|int}}"
   systemd:
-    name: redis-server{{'8000'|int+ item|int}}.service
+    name: redis-server{{port}}.service
     enabled: true
     state: started
     daemon_reload: true
-  loop: "{{ range(1,  redis_instances|int) }}"

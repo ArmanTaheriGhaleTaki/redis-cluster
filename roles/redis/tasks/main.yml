@@ -17,7 +17,7 @@
         dest: "/etc/redis/redis{{port}}.conf"
       notify: reload
     
-    - name: "Making var/lib/redis"
+    - name: "Making /var/lib/redis"
       file: 
         owner: redis 
         group: redis 
@@ -47,27 +47,12 @@
         redis_hosts: "{{ redis_hosts | default([]) + [ hostvars[item].ansible_default_ipv4.address ~ ':' ~ hostvars[item]['port'] ] }}"
       loop: "{{ groups['redis'] }}"
 
-#   - name: Display IP and Port variable
-#     debug:
-#       var: redis_hosts 
-
     - name: Set Redis cluster command
       set_fact:
-        redis_cluster_command: "redis-cli --cluster create {{ redis_hosts | join(' ') }} --cluster-replicas {{cluster_replicas}}"
+        redis_cluster_command: "redis-cli --cluster create {{ redis_hosts | join(' ') }} --cluster-yes --cluster-replicas {{cluster_replicas}} "
       loop: "{{redis_hosts}}"
-
-    - name: Display IP and Port variable
-      debug:
-        var: redis_cluster_command 
-
-    - name: bemula
-      debug:
-        var: ansible_hostname
 
     - name: Execute Redis cluster command
       command: "{{ redis_cluster_command }}"
       register: redis_cluster_output
       when: inventory_hostname=="redis1"
-
-
-
