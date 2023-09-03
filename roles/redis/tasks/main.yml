@@ -19,7 +19,7 @@
     owner: redis 
     group: redis 
     state: directory
-    path: "/var/lib/redis{{port}}"
+    path: "/var/lib/redis"
     mode: '0750'
 
 - name: Making appendonly 
@@ -27,7 +27,7 @@
     owner: redis 
     group: redis 
     state: touch 
-    path: "/var/lib/redis{{port}}/appendonly-redis{{port}}"
+    path: "/var/lib/redis/appendonly-redis{{port}}"
     mode: '0750'
 
 - name: Adding redis.service

@@ -5,6 +5,6 @@ cluster-node-timeout 5000
 appendonly yes
 appendfilename {{redis_appendfilename}} 
 protected-mode no 
-pidfile /var/run/redis{{port}}/redis-server{{port}}.pid
+pidfile /var/run/redis/redis-server{{port}}.pid
 logfile /var/log/redis/redis-server{{port}}.log
-dir /var/lib/redis{{port}}
+dir /var/lib/redis
