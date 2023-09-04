@@ -34,5 +34,5 @@ ProtectSystem=true
 
 [Install]
 WantedBy=multi-user.target
-Alias=redis{{port}}.service
+Alias=redis{{ '' if production == 1 else port }}.service
 
